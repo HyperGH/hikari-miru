@@ -1,1 +1,1 @@
-hikari @ git+https://github.com/thesadru/hikari@feat/modal
+hikari @ git+https://github.com/HyperGH/hikari
