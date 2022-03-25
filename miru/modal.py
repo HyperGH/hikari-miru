@@ -265,7 +265,7 @@ class Modal(ItemHandler):
                 return
 
             # Create task here to ensure autodefer works even if callback stops view
-            asyncio.create_task(self._handle_callback(context))
+            self._create_task(self._handle_callback(context))
 
     async def _listen_for_events(self) -> None:
         """

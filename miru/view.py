@@ -239,7 +239,7 @@ class View(ItemHandler):
         Stop listening for interactions.
         """
         if self._message_id:
-            View._views.pop(self._message_id)
+            View._views.pop(self._message_id, None)
 
         super().stop()
 
@@ -280,7 +280,7 @@ class View(ItemHandler):
                 for item in items:
                     assert isinstance(item, ViewItem)
                     # Create task here to ensure autodefer works even if callback stops view
-                    asyncio.create_task(self._handle_callback(item, context))
+                    self._create_task(self._handle_callback(item, context))
 
     async def _listen_for_events(self, message_id: Optional[int] = None) -> None:
         """
@@ -314,7 +314,7 @@ class View(ItemHandler):
         Handle the timing out of the view.
         """
         if self._message_id:
-            View._views.pop(self._message_id)
+            View._views.pop(self._message_id, None)
 
         await super()._handle_timeout()
 

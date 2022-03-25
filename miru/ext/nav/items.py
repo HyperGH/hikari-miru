@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import abc
 from typing import TYPE_CHECKING
 from typing import Optional
 from typing import TypeVar
@@ -27,9 +28,11 @@ from typing import Union
 
 import hikari
 
+from miru.abc.item import ViewItem
 from miru.button import Button
 from miru.context import ViewContext
 from miru.modal import Modal
+from miru.select import Select
 from miru.text_input import TextInput
 
 if TYPE_CHECKING:
@@ -38,58 +41,26 @@ if TYPE_CHECKING:
 NavigatorViewT = TypeVar("NavigatorViewT", bound="NavigatorView")
 
 
-class NavButton(Button[NavigatorViewT]):
-    """A baseclass for all navigation buttons. NavigatorView requires instances of this class as it's items.
-
-    Parameters
-    ----------
-    style : Union[hikari.ButtonStyle, int], optional
-        The style of the navigation button, by default hikari.ButtonStyle.PRIMARY
-    label : Optional[str], optional
-        The label of the navigation button, by default None
-    disabled : bool, optional
-        Boolean indicating if the navigation button is disabled, by default False
-    custom_id : Optional[str], optional
-        The custom identifier of the navigation button, by default None
-    emoji : Union[hikari.Emoji, str, None], optional
-        The emoji of the navigation button, by default None
-    row : Optional[int], optional
-        The row this navigation button should occupy. Leave None for auto-placement.
-    """
-
-    def __init__(
-        self,
-        *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
-        label: Optional[str] = None,
-        disabled: bool = False,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = None,
-        row: Optional[int] = None,
-    ):
-        super().__init__(
-            style=style,
-            label=label,
-            disabled=disabled,
-            custom_id=custom_id,
-            url=None,
-            emoji=emoji,
-            row=row,
-        )
-
-    @property
-    def url(self) -> None:
-        return None
-
-    @url.setter
-    def url(self, value: str) -> None:
-        raise AttributeError("NavButton cannot have attribute url.")
+class NavItem(ViewItem[NavigatorViewT], abc.ABC):
+    """A baseclass for all navigation items. NavigatorView requires instances of this class as it's items."""
 
     async def before_page_change(self) -> None:
         """
         Called when the navigator is about to transition to the next page. Also called before the first page is sent.
         """
         pass
+
+
+class NavButton(NavItem[NavigatorViewT], Button[NavigatorViewT]):
+    """A base class for all navigation buttons."""
+
+    ...
+
+
+class NavSelect(NavItem[NavigatorViewT], Select[NavigatorViewT]):
+    """A base class for all navigation selects."""
+
+    ...
 
 
 class NextButton(NavButton[NavigatorViewT]):
@@ -219,6 +190,7 @@ class IndicatorButton(NavButton[NavigatorViewT]):
 
     async def before_page_change(self) -> None:
         self.label = f"{self.view.current_page+1}/{len(self.view.pages)}"
+        self.disabled = self.disabled if len(self.view.pages) != 1 else True
 
     async def callback(self, context: ViewContext) -> None:
         modal = Modal("Jump to page", autodefer=False)

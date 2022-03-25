@@ -34,13 +34,13 @@ from miru.abc.item_handler import ItemHandler
 from miru.context import Context
 from miru.view import View
 
-from .buttons import FirstButton
-from .buttons import IndicatorButton
-from .buttons import LastButton
-from .buttons import NavButton
-from .buttons import NavigatorViewT
-from .buttons import NextButton
-from .buttons import PrevButton
+from .items import FirstButton
+from .items import IndicatorButton
+from .items import LastButton
+from .items import NavButton
+from .items import NavigatorViewT
+from .items import NextButton
+from .items import PrevButton
 
 logger = logging.getLogger(__name__)
 

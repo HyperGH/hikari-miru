@@ -14,4 +14,4 @@ If you think anything is missing, feel free to open an issue or pull request.
    :maxdepth: 2
 
    ext_nav/navigator
-   ext_nav/buttons
+   ext_nav/items

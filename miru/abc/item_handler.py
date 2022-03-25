@@ -26,9 +26,7 @@ import abc
 import asyncio
 import itertools
 import sys
-from typing import ClassVar
-from typing import List
-from typing import Optional
+import typing as t
 
 import hikari
 
@@ -89,16 +87,17 @@ class ItemHandler(abc.ABC):
         Raised if miru.load() was never called before instantiation.
     """
 
-    _app: ClassVar[Optional[MiruAware]] = None
+    _app: t.ClassVar[t.Optional[MiruAware]] = None
 
-    def __init__(self, *, timeout: Optional[float] = 120.0, autodefer: bool = True) -> None:
-        self._timeout: Optional[float] = float(timeout) if timeout else None
-        self._children: List[Item] = []
+    def __init__(self, *, timeout: t.Optional[float] = 120.0, autodefer: bool = True) -> None:
+        self._timeout: t.Optional[float] = float(timeout) if timeout else None
+        self._children: t.List[Item] = []
         self._autodefer: bool = autodefer
 
         self._weights: _Weights = _Weights()
         self._stopped: asyncio.Event = asyncio.Event()
-        self._listener_task: Optional[asyncio.Task[None]] = None
+        self._listener_task: t.Optional[asyncio.Task[None]] = None
+        self._running_tasks: t.List[asyncio.Task[t.Any]] = []
 
         if len(self.children) > 25:
             raise ValueError(f"{self.__class__.__name__} cannot have more than 25 components attached.")
@@ -107,14 +106,14 @@ class ItemHandler(abc.ABC):
             raise RuntimeError(f"miru.load() was never called before instantiation of {self.__class__.__name__}.")
 
     @property
-    def children(self) -> List[Item]:
+    def children(self) -> t.List[Item]:
         """
         A list of all items attached to the item handler.
         """
         return self._children
 
     @property
-    def timeout(self) -> Optional[float]:
+    def timeout(self) -> t.Optional[float]:
         """
         The amount of time the item handler is allowed to idle for, in seconds. Must be None for persistent views.
         """
@@ -138,7 +137,7 @@ class ItemHandler(abc.ABC):
         return self.app
 
     @property
-    def autodefer(self) -> Optional[bool]:
+    def autodefer(self) -> t.Optional[bool]:
         """
         A boolean indicating if the received interaction should automatically be deferred if not responded to or not.
         """
@@ -228,7 +227,7 @@ class ItemHandler(abc.ABC):
 
         return self
 
-    def build(self) -> List[hikari.impl.ActionRowBuilder]:
+    def build(self) -> t.List[hikari.impl.ActionRowBuilder]:
         """Converts the view into action rows, must be called before sending.
 
         Returns
@@ -297,6 +296,15 @@ class ItemHandler(abc.ABC):
             self._listener_task.cancel()
 
         self._listener_task = None
+
+    def _create_task(self, coro: t.Awaitable[t.Any], *, name: t.Optional[str] = None) -> asyncio.Task[t.Any]:
+        """
+        Run tasks inside the itemhandler internally while keeping a reference to the provided task.
+        """
+        task = asyncio.create_task(coro, name=name)
+        self._running_tasks.append(task)
+        task.add_done_callback(lambda t: self._running_tasks.remove(t))
+        return task
 
     async def wait(self) -> None:
         """
