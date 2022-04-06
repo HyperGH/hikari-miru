@@ -40,7 +40,7 @@ ModalT = TypeVar("ModalT", bound="Modal")
 __all__ = ["TextInput"]
 
 
-class TextInput(ModalItem[ModalT]):
+class TextInput(ModalItem):
     """A text input field that can be used in modals.
 
     Parameters

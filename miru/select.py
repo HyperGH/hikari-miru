@@ -41,8 +41,6 @@ if TYPE_CHECKING:
     from .context import ViewContext
     from .view import View
 
-ViewT = TypeVar("ViewT", bound="View")
-
 __all__ = ["SelectOption", "Select", "select"]
 
 
@@ -92,7 +90,7 @@ class SelectOption:
         )
 
 
-class Select(ViewItem[ViewT]):
+class Select(ViewItem):
     """A view component representing a select menu.
 
     Parameters
@@ -205,7 +203,7 @@ class Select(ViewItem[ViewT]):
         self._max_values = value
 
     @classmethod
-    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem[ViewT]:
+    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem:
         assert isinstance(component, hikari.SelectMenuComponent)
 
         return cls(
@@ -266,7 +264,7 @@ def select(
     max_values: int = 1,
     disabled: bool = False,
     row: Optional[int] = None,
-) -> Callable[[Callable[[ViewT, Select[ViewT], ViewContext], Any]], Select[ViewT]]:
+) -> Callable[[Callable[[View, Select, ViewContext], Any]], Select]:
     """
     A decorator to transform a function into a Discord UI SelectMenu's callback. This must be inside a subclass of View.
     """
@@ -275,7 +273,7 @@ def select(
         if not inspect.iscoroutinefunction(func):
             raise TypeError("select must decorate coroutine function.")
 
-        item: Select[Any] = Select(
+        item = Select(
             options=options,
             custom_id=custom_id,
             placeholder=placeholder,

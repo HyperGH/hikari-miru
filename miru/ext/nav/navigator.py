@@ -38,7 +38,7 @@ from .items import FirstButton
 from .items import IndicatorButton
 from .items import LastButton
 from .items import NavButton
-from .items import NavigatorViewT
+from .items import NavItem
 from .items import NextButton
 from .items import PrevButton
 
@@ -69,14 +69,16 @@ class NavigatorView(View):
         self,
         *,
         pages: List[Union[str, hikari.Embed]],
-        buttons: Optional[List[NavButton[NavigatorViewT]]] = None,
+        buttons: Optional[List[NavButton]] = None,
         timeout: Optional[float] = 120.0,
         autodefer: bool = True,
     ) -> None:
         self._pages: List[Union[str, hikari.Embed]] = pages
         self._current_page: int = 0
         self._ephemeral: bool = False
-        # The last interaction used, used for ephemeral handling
+        # If the nav is using interaction-based handling or not
+        self._using_inter: bool = False
+        # The last interaction received, used for inter-based handling
         self._inter: Optional[hikari.MessageResponseMixin[Any]] = None
         super().__init__(timeout=timeout, autodefer=autodefer)
 
@@ -127,15 +129,15 @@ class NavigatorView(View):
             return
 
         for button in self.children:
-            assert isinstance(button, NavButton)
+            assert isinstance(button, NavItem)
             button.disabled = True
 
-        if self._ephemeral and self._inter:
+        if self._using_inter and self._inter:
             await self._inter.edit_initial_response(components=self.build())
         else:
             await self.message.edit(components=self.build())
 
-    def get_default_buttons(self: NavigatorViewT) -> List[NavButton[NavigatorViewT]]:
+    def get_default_buttons(self) -> List[NavButton]:
         """Returns the default set of buttons.
 
         Returns
@@ -163,8 +165,8 @@ class NavigatorView(View):
         ItemHandler
             The item handler the item was added to.
         """
-        if not isinstance(item, NavButton):
-            raise TypeError("Expected type NavButton for parameter item.")
+        if not isinstance(item, NavItem):
+            raise TypeError("Expected type NavItem for parameter item.")
 
         return super().add_item(item)
 
@@ -198,7 +200,7 @@ class NavigatorView(View):
         page = self.pages[self.current_page]
 
         for button in self.children:
-            if isinstance(button, NavButton):
+            if isinstance(button, NavItem):
                 await button.before_page_change()
 
         payload = self._get_page_payload(page)
@@ -236,10 +238,11 @@ class NavigatorView(View):
             If an interaction was provided, determines if the interaction was previously acknowledged or not.
         """
         self.current_page = start_at
-        self._ephemeral = ephemeral if not isinstance(channel_or_interaction, (int, hikari.TextableChannel)) else False
+        self._ephemeral = ephemeral if isinstance(channel_or_interaction, hikari.MessageResponseMixin) else False
+        self._using_inter = isinstance(channel_or_interaction, hikari.MessageResponseMixin)
 
         for button in self.children:
-            if isinstance(button, NavButton):
+            if isinstance(button, NavItem):
                 await button.before_page_change()
 
         if self.ephemeral and self.timeout and self.timeout > 900:

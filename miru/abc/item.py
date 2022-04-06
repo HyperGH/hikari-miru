@@ -42,9 +42,6 @@ if TYPE_CHECKING:
     from ..view import View
     from .item_handler import ItemHandler
 
-ViewT = TypeVar("ViewT", bound="View")
-ModalT = TypeVar("ModalT", bound="Modal")
-
 __all__ = ["Item", "DecoratedItem", "ViewItem", "ModalItem"]
 
 
@@ -119,19 +116,19 @@ class Item(abc.ABC):
         ...
 
 
-class ViewItem(Item, abc.ABC, Generic[ViewT]):
+class ViewItem(Item, abc.ABC):
     """
     An abstract base class for view components. Cannot be directly instantiated.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self._handler: Optional[ViewT] = None
+        self._handler: Optional[View] = None
         self._persistent: bool = False
         self._disabled: bool = False
 
     @property
-    def view(self) -> ViewT:
+    def view(self) -> View:
         """
         The view this item is attached to.
         """
@@ -155,7 +152,7 @@ class ViewItem(Item, abc.ABC, Generic[ViewT]):
 
     @classmethod
     @abstractmethod
-    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem[ViewT]:
+    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem:
         """
         Converts the passed hikari component into a miru ViewItem.
         """
@@ -174,19 +171,19 @@ class ViewItem(Item, abc.ABC, Generic[ViewT]):
         pass
 
 
-class ModalItem(Item, abc.ABC, Generic[ModalT]):
+class ModalItem(Item, abc.ABC):
     """
     An abstract base class for modal components. Cannot be directly instantiated.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self._handler: Optional[ModalT] = None
+        self._handler: Optional[Modal] = None
         self._persistent: bool = False
         self._required: bool = False
 
     @property
-    def modal(self) -> Optional[ModalT]:
+    def modal(self) -> Optional[Modal]:
         """
         The modal this item is attached to.
         """
@@ -212,11 +209,11 @@ class ModalItem(Item, abc.ABC, Generic[ModalT]):
 class DecoratedItem:
     """A partial item made using a decorator."""
 
-    def __init__(self, item: ViewItem[ViewT], callback: Callable[..., Any]) -> None:
+    def __init__(self, item: ViewItem, callback: Callable[..., Any]) -> None:
         self.item = item
         self.callback = callback
 
-    def build(self, view: ViewT) -> ViewItem[ViewT]:
+    def build(self, view: View) -> ViewItem:
         """Convert a DecoratedItem into a ViewItem.
 
         Parameters

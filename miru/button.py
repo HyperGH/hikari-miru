@@ -40,12 +40,10 @@ if TYPE_CHECKING:
     from .context import ViewContext
     from .view import View
 
-ViewT = TypeVar("ViewT", bound="View")
-
 __all__ = ["Button", "button"]
 
 
-class Button(ViewItem[ViewT]):
+class Button(ViewItem):
     """A view component representing a button.
 
     Parameters
@@ -179,7 +177,7 @@ class Button(ViewItem[ViewT]):
         self._url = value
 
     @classmethod
-    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem[ViewT]:
+    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem:
         assert isinstance(component, hikari.ButtonComponent)
 
         return cls(
@@ -220,7 +218,7 @@ def button(
     emoji: Optional[Union[str, hikari.Emoji]] = None,
     row: Optional[int] = None,
     disabled: bool = False,
-) -> Callable[[Callable[[ViewT, Button[ViewT], ViewContext], Any]], Button[ViewT]]:
+) -> Callable[[Callable[[View, Button, ViewContext], Any]], Button]:
     """A decorator to transform a coroutine function into a Discord UI Button's callback.
     This must be inside a subclass of View.
 
@@ -248,7 +246,7 @@ def button(
     def decorator(func: Callable[..., Any]) -> Any:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("button must decorate coroutine function.")
-        item: Button[Any] = Button(
+        item = Button(
             label=label,
             custom_id=custom_id,
             style=style,

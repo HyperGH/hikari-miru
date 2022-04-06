@@ -43,8 +43,6 @@ from .context import ViewContext
 from .interaction import ComponentInteraction
 from .select import Select
 
-ViewT = TypeVar("ViewT", bound="View")
-
 __all__ = ["View", "get_view"]
 
 
@@ -210,9 +208,9 @@ class View(ItemHandler):
         return True
 
     async def on_error(
-        self: ViewT,
+        self,
         error: Exception,
-        item: Optional[ViewItem[ViewT]] = None,
+        item: Optional[ViewItem] = None,
         context: Optional[ViewContext] = None,
     ) -> None:
         """Called when an error occurs in a callback function or the built-in timeout function.
@@ -243,7 +241,7 @@ class View(ItemHandler):
 
         super().stop()
 
-    async def _handle_callback(self: ViewT, item: ViewItem[ViewT], context: ViewContext) -> None:
+    async def _handle_callback(self, item: ViewItem, context: ViewContext) -> None:
         """
         Handle the callback of a view item. Seperate task in case the view is stopped in the callback.
         """

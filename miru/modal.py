@@ -76,7 +76,7 @@ class Modal(ItemHandler):
 
         self._title: str = title
         self._custom_id: str = custom_id or os.urandom(16).hex()
-        self._values: Optional[Dict[ModalItem[Modal], str]] = None
+        self._values: Optional[Dict[ModalItem, str]] = None
         self._ctx: Optional[ModalContext] = None
 
         if len(self._title) > 100:
@@ -120,7 +120,7 @@ class Modal(ItemHandler):
         self._custom_id = value
 
     @property
-    def values(self) -> Optional[Dict[ModalItem[Modal], str]]:
+    def values(self) -> Optional[Dict[ModalItem, str]]:
         """
         The input values received by this modal.
         """
@@ -246,10 +246,10 @@ class Modal(ItemHandler):
             children = {item.custom_id: item for item in self.children if isinstance(item, ModalItem)}
 
             values = {  # Check if any components match the provided custom_ids
-                children[component.custom_id]: component.value
+                children[component.custom_id]: component.value  # type: ignore[attr-defined]
                 for action_row in event.interaction.components
                 for component in action_row.components
-                if children.get(component.custom_id) is not None
+                if children.get(component.custom_id) is not None  # type: ignore[attr-defined]
             }
             if not values:
                 return
@@ -296,7 +296,7 @@ class Modal(ItemHandler):
         """Start up the modal and begin listening for interactions."""
         self._listener_task = asyncio.create_task(self._listen_for_events())
 
-    async def send(self, interaction: hikari.MessageResponseMixin[Any]) -> None:
+    async def send(self, interaction: hikari.ModalResponseMixin) -> None:
         """Send this modal as a response to the provided interaction."""
         await interaction.create_modal_response(self.title, self.custom_id, components=self.build())
         self.start()

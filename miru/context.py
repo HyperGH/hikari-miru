@@ -96,12 +96,12 @@ class Context(abc.ABC, t.Generic[InteractionT]):
         return self._interaction.member
 
     @property
-    def locale(self) -> str:
+    def locale(self) -> t.Union[str, hikari.Locale]:
         """The locale of this context."""
         return self._interaction.locale
 
     @property
-    def guild_locale(self) -> t.Optional[str]:
+    def guild_locale(self) -> t.Optional[t.Union[str, hikari.Locale]]:
         """
         The guild locale of this context, if in a guild.
         This will default to `en-US` if not a community guild.
@@ -417,7 +417,7 @@ class ViewContext(RawComponentContext):
 class ModalContext(RawModalContext):
     """A context object proxying a ModalInteraction received by a miru modal."""
 
-    def __init__(self, modal: Modal, interaction: ModalInteraction, values: t.Dict[ModalItem[Modal], str]) -> None:
+    def __init__(self, modal: Modal, interaction: ModalInteraction, values: t.Dict[ModalItem, str]) -> None:
         super().__init__(interaction)
         self._modal = modal
         self._values = values
@@ -428,6 +428,6 @@ class ModalContext(RawModalContext):
         return self._modal
 
     @property
-    def values(self) -> t.Dict[ModalItem[Modal], str]:
+    def values(self) -> t.Dict[ModalItem, str]:
         """The values received as input for this modal."""
         return self._values
