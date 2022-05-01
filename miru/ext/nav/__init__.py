@@ -23,14 +23,18 @@
 from .items import FirstButton
 from .items import IndicatorButton
 from .items import LastButton
+from .items import NavItem
 from .items import NavButton
+from .items import NavSelect
 from .items import NextButton
 from .items import PrevButton
 from .items import StopButton
 from .navigator import NavigatorView
 
 __all__ = [
+    "NavItem",
     "NavButton",
+    "NavSelect",
     "NextButton",
     "PrevButton",
     "FirstButton",
