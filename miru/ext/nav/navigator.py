@@ -190,7 +190,7 @@ class NavigatorView(View):
         page_index : Optional[int], optional
             The index of the page to send, if not specifed, sends the current page, by default None
         """
-        if page_index:
+        if page_index is not None:
             self.current_page = page_index
 
         page = self.pages[self.current_page]
