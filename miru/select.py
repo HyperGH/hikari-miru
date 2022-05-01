@@ -24,22 +24,18 @@ from __future__ import annotations
 
 import inspect
 import os
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Callable
-from typing import Optional
-from typing import Sequence
-from typing import TypeVar
-from typing import Union
+import typing as t
 
 import hikari
 
 from .abc.item import DecoratedItem
 from .abc.item import ViewItem
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .context import ViewContext
     from .view import View
+
+    ViewT = t.TypeVar("ViewT", bound="View")
 
 __all__ = ["SelectOption", "Select", "select"]
 
@@ -52,9 +48,9 @@ class SelectOption:
     def __init__(
         self,
         label: str,
-        value: Optional[str] = None,
-        description: Optional[str] = None,
-        emoji: Optional[Union[str, hikari.Emoji]] = None,
+        value: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        emoji: t.Optional[t.Union[str, hikari.Emoji]] = None,
         is_default: bool = False,
     ) -> None:
         """A more lenient way to instantiate select options.
@@ -74,10 +70,10 @@ class SelectOption:
         """
         self.label: str = label
         self.value: str = value or label
-        self.description: Optional[str] = description
+        self.description: t.Optional[str] = description
         if isinstance(emoji, str):
             emoji = hikari.Emoji.parse(emoji)
-        self.emoji: Optional[hikari.Emoji] = emoji
+        self.emoji: t.Optional[hikari.Emoji] = emoji
         self.is_default: bool = is_default
 
     def _convert(self) -> hikari.SelectMenuOption:
@@ -119,24 +115,24 @@ class Select(ViewItem):
     def __init__(
         self,
         *,
-        options: Sequence[Union[hikari.SelectMenuOption, SelectOption]],
-        custom_id: Optional[str] = None,
-        placeholder: Optional[str] = None,
+        options: t.Sequence[t.Union[hikari.SelectMenuOption, SelectOption]],
+        custom_id: t.Optional[str] = None,
+        placeholder: t.Optional[str] = None,
         min_values: int = 1,
         max_values: int = 1,
         disabled: bool = False,
-        row: Optional[int] = None,
+        row: t.Optional[int] = None,
     ) -> None:
         super().__init__()
-        self._values: Sequence[str] = []
+        self._values: t.Sequence[str] = []
         self._persistent: bool = True if custom_id else False
         self._custom_id: str = os.urandom(16).hex() if not custom_id else custom_id
         self._disabled: bool = disabled
-        self._options: Sequence[Union[hikari.SelectMenuOption, SelectOption]] = options
+        self._options: t.Sequence[t.Union[hikari.SelectMenuOption, SelectOption]] = options
         self._min_values: int = min_values
         self._max_values: int = max_values
-        self._placeholder: Optional[str] = placeholder
-        self._row: Optional[int] = row if row is not None else None
+        self._placeholder: t.Optional[str] = placeholder
+        self._row: t.Optional[int] = row if row is not None else None
 
         if len(self._options) > 25:
             raise ValueError("A select can have a maximum of 25 options.")
@@ -146,27 +142,27 @@ class Select(ViewItem):
         return hikari.ComponentType.SELECT_MENU
 
     @property
-    def placeholder(self) -> Optional[str]:
+    def placeholder(self) -> t.Optional[str]:
         """
         The placeholder text that appears before the select menu is clicked.
         """
         return self._placeholder
 
     @placeholder.setter
-    def placeholder(self, value: Optional[str]) -> None:
+    def placeholder(self, value: t.Optional[str]) -> None:
         if value and not isinstance(value, str):
             raise TypeError("Expected type str for property placeholder.")
 
     @property
-    def options(self) -> Sequence[Union[hikari.SelectMenuOption, SelectOption]]:
+    def options(self) -> t.Sequence[t.Union[hikari.SelectMenuOption, SelectOption]]:
         """
         The select menu's options.
         """
         return self._options
 
     @options.setter
-    def options(self, value: Sequence[Union[hikari.SelectMenuOption, SelectOption]]) -> None:
-        if not isinstance(value, Sequence) or not isinstance(value[0], (hikari.SelectMenuOption, SelectOption)):
+    def options(self, value: t.Sequence[t.Union[hikari.SelectMenuOption, SelectOption]]) -> None:
+        if not isinstance(value, t.Sequence) or not isinstance(value[0], (hikari.SelectMenuOption, SelectOption)):
             raise TypeError(
                 "Expected type Sequence[Union[hikari.SelectMenuOption, SelectOption]] for property options."
             )
@@ -203,7 +199,7 @@ class Select(ViewItem):
         self._max_values = value
 
     @classmethod
-    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem:
+    def _from_component(cls, component: hikari.PartialComponent, row: t.Optional[int] = None) -> ViewItem:
         assert isinstance(component, hikari.SelectMenuComponent)
 
         return cls(
@@ -244,7 +240,7 @@ class Select(ViewItem):
         select.add_to_container()
 
     @property
-    def values(self) -> Sequence[str]:
+    def values(self) -> t.Sequence[str]:
         return self._values
 
     @property
@@ -257,19 +253,19 @@ class Select(ViewItem):
 
 def select(
     *,
-    options: Sequence[Union[hikari.SelectMenuOption, SelectOption]],
-    custom_id: Optional[str] = None,
-    placeholder: Optional[str] = None,
+    options: t.Sequence[t.Union[hikari.SelectMenuOption, SelectOption]],
+    custom_id: t.Optional[str] = None,
+    placeholder: t.Optional[str] = None,
     min_values: int = 1,
     max_values: int = 1,
     disabled: bool = False,
-    row: Optional[int] = None,
-) -> Callable[[Callable[[View, Select, ViewContext], Any]], Select]:
+    row: t.Optional[int] = None,
+) -> t.Callable[[t.Callable[[ViewT, Select, ViewContext], t.Any]], Select]:
     """
     A decorator to transform a function into a Discord UI SelectMenu's callback. This must be inside a subclass of View.
     """
 
-    def decorator(func: Callable[..., Any]) -> Any:
+    def decorator(func: t.Callable[..., t.Any]) -> t.Any:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("select must decorate coroutine function.")
 

@@ -27,11 +27,15 @@ import asyncio
 import itertools
 import sys
 import typing as t
+from collections.abc import Sequence
 
 import hikari
 
 from ..traits import MiruAware
 from .item import Item
+
+if t.TYPE_CHECKING:
+    from ..context import Context
 
 __all__ = ["ItemHandler"]
 
@@ -69,7 +73,7 @@ class _Weights:
         self._weights = [0, 0, 0, 0, 0]
 
 
-class ItemHandler(abc.ABC):
+class ItemHandler(Sequence[hikari.api.ActionRowBuilder], abc.ABC):
     """Abstract base class all item-handlers (e.g. views, modals) inherit from.
 
     Parameters
@@ -98,12 +102,39 @@ class ItemHandler(abc.ABC):
         self._stopped: asyncio.Event = asyncio.Event()
         self._listener_task: t.Optional[asyncio.Task[None]] = None
         self._running_tasks: t.List[asyncio.Task[t.Any]] = []
+        self._last_context: t.Optional[Context[t.Any]] = None
 
         if len(self.children) > 25:
             raise ValueError(f"{self.__class__.__name__} cannot have more than 25 components attached.")
 
         if self.app is None:
             raise RuntimeError(f"miru.load() was never called before instantiation of {self.__class__.__name__}.")
+
+    @t.overload
+    def __getitem__(self, value: int) -> hikari.api.ActionRowBuilder:
+        ...
+
+    @t.overload
+    def __getitem__(self, value: slice) -> t.Sequence[hikari.api.ActionRowBuilder]:
+        ...
+
+    def __getitem__(
+        self, value: t.Union[slice, int]
+    ) -> t.Union[hikari.api.ActionRowBuilder, t.Sequence[hikari.api.ActionRowBuilder]]:
+        return self.build()[value]
+
+    def __iter__(self) -> t.Iterator[hikari.api.ActionRowBuilder]:
+        for action_row in self.build():
+            yield action_row
+
+    def __contains__(self, value: object) -> bool:
+        return value in self.build()
+
+    def __len__(self) -> int:
+        return len(self.build())
+
+    def __reversed__(self) -> t.Iterator[hikari.api.ActionRowBuilder]:
+        return self.build().__reversed__()
 
     @property
     def children(self) -> t.List[Item]:
@@ -142,6 +173,13 @@ class ItemHandler(abc.ABC):
         A boolean indicating if the received interaction should automatically be deferred if not responded to or not.
         """
         return self._autodefer
+
+    @property
+    def last_context(self) -> t.Optional[Context[t.Any]]:
+        """
+        The last context that was received by the item handler.
+        """
+        return self._last_context
 
     def add_item(self, item: Item) -> ItemHandler:
         """Adds a new item to the item handler.
@@ -228,13 +266,13 @@ class ItemHandler(abc.ABC):
         return self
 
     def build(self) -> t.List[hikari.impl.ActionRowBuilder]:
-        """Converts the view into action rows, must be called before sending.
+        """Creates the action rows the item handler represents.
 
         Returns
         -------
         List[hikari.impl.ActionRowBuilder]
             A list of action rows containing all items attached to this item handler,
-            converted to hikari component objects. If the view has no items attached,
+            converted to hikari component objects. If the item handler has no items attached,
             this returns an empty list.
         """
         if not self.children:
@@ -306,8 +344,12 @@ class ItemHandler(abc.ABC):
         task.add_done_callback(lambda t: self._running_tasks.remove(t))
         return task
 
-    async def wait(self) -> None:
+    async def wait(self, timeout: t.Optional[float] = None) -> None:
+        """Wait until the item handler has stopped receiveing interactions.
+
+        Parameters
+        ----------
+        timeout : Optional[float], optional
+            The amount of time to wait, in seconds, by default None
         """
-        Wait until the item handler has stopped.
-        """
-        await asyncio.wait_for(self._stopped.wait(), timeout=None)
+        await asyncio.wait_for(self._stopped.wait(), timeout=timeout)

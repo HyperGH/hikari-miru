@@ -21,11 +21,7 @@
 # SOFTWARE.
 
 import logging
-from typing import Any
-from typing import List
-from typing import Mapping
-from typing import Optional
-from typing import Union
+import typing as t
 
 import hikari
 
@@ -68,18 +64,18 @@ class NavigatorView(View):
     def __init__(
         self,
         *,
-        pages: List[Union[str, hikari.Embed]],
-        buttons: Optional[List[NavButton]] = None,
-        timeout: Optional[float] = 120.0,
+        pages: t.List[t.Union[str, hikari.Embed]],
+        buttons: t.Optional[t.List[NavButton]] = None,
+        timeout: t.Optional[float] = 120.0,
         autodefer: bool = True,
     ) -> None:
-        self._pages: List[Union[str, hikari.Embed]] = pages
+        self._pages: t.List[t.Union[str, hikari.Embed]] = pages
         self._current_page: int = 0
         self._ephemeral: bool = False
         # If the nav is using interaction-based handling or not
         self._using_inter: bool = False
         # The last interaction received, used for inter-based handling
-        self._inter: Optional[hikari.MessageResponseMixin[Any]] = None
+        self._inter: t.Optional[hikari.MessageResponseMixin[t.Any]] = None
         super().__init__(timeout=timeout, autodefer=autodefer)
 
         if buttons is not None:
@@ -95,7 +91,7 @@ class NavigatorView(View):
                 raise TypeError("Expected type List[str, hikari.Embed] for parameter pages.")
 
     @property
-    def pages(self) -> List[Union[str, hikari.Embed]]:
+    def pages(self) -> t.List[t.Union[str, hikari.Embed]]:
         """
         The pages the navigator is iterating through.
         """
@@ -133,11 +129,11 @@ class NavigatorView(View):
             button.disabled = True
 
         if self._using_inter and self._inter:
-            await self._inter.edit_initial_response(components=self.build())
+            await self._inter.edit_initial_response(components=self)
         else:
-            await self.message.edit(components=self.build())
+            await self.message.edit(components=self)
 
-    def get_default_buttons(self) -> List[NavButton]:
+    def get_default_buttons(self) -> t.List[NavButton]:
         """Returns the default set of buttons.
 
         Returns
@@ -170,7 +166,7 @@ class NavigatorView(View):
 
         return super().add_item(item)
 
-    def _get_page_payload(self, page: Union[str, hikari.Embed]) -> Mapping[str, Any]:
+    def _get_page_payload(self, page: t.Union[str, hikari.Embed]) -> t.Mapping[str, t.Any]:
         """Get the page content that is to be sent."""
 
         content = page if isinstance(page, str) else ""
@@ -180,11 +176,11 @@ class NavigatorView(View):
             raise TypeError("Expected type str or hikari.Embed to send as page.")
 
         if self.ephemeral:
-            return dict(content=content, embeds=embeds, components=self.build(), flags=hikari.MessageFlag.EPHEMERAL)
+            return dict(content=content, embeds=embeds, components=self, flags=hikari.MessageFlag.EPHEMERAL)
         else:
-            return dict(content=content, embeds=embeds, components=self.build())
+            return dict(content=content, embeds=embeds, components=self)
 
-    async def send_page(self, context: Context[Any], page_index: Optional[int] = None) -> None:
+    async def send_page(self, context: Context[t.Any], page_index: t.Optional[int] = None) -> None:
         """Send a page, editing the original message.
 
         Parameters
@@ -219,7 +215,9 @@ class NavigatorView(View):
 
     async def send(
         self,
-        channel_or_interaction: Union[hikari.SnowflakeishOr[hikari.TextableChannel], hikari.MessageResponseMixin[Any]],
+        channel_or_interaction: t.Union[
+            hikari.SnowflakeishOr[hikari.TextableChannel], hikari.MessageResponseMixin[t.Any]
+        ],
         start_at: int = 0,
         ephemeral: bool = False,
         responded: bool = False,

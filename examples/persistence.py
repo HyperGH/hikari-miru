@@ -59,8 +59,10 @@ miru.load(bot)
 async def startup_views(event: hikari.StartedEvent) -> None:
     # You must reinstantiate the view in the same state it was before shutdown (e.g. same custom_ids)
     view = Persistence()
-    # Restart the listener for the view, you may optionally pass in a message_id to further improve
-    # accuracy and allow for after-the-fact view message edits
+    # Restart the listener for the view, if you do not pass a message_id, this will handle
+    # all interactions for every view of type 'Persistence'.
+    # If you pass a message_id to start_listener(), it will only handle interactions for that message,
+    # and will be considered a bound persistent view.
     view.start_listener()
 
 
@@ -73,12 +75,12 @@ async def buttons(event: hikari.GuildMessageCreateEvent) -> None:
 
     if event.content.startswith("miru"):
         view = Persistence()
-        message = await event.message.respond(
+        await event.message.respond(
             "This is a persistent component menu, and works after bot restarts!",
-             components=view.build(),
+             components=view,
         )
-
-        view.start(message)
+        # Unbound views do not need to be started, as starting one listener will handle all views of the same type.
+        # Bound views (ones that are bound to a message) must be started here via view.start().
 
 
 bot.run()

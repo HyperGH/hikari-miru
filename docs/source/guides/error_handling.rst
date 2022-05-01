@@ -14,7 +14,7 @@ Example:
 
 ::
 
-    from typing import Optional # This is just for proper typehinting
+    from typing import Optional
 
     import hikari
     import miru

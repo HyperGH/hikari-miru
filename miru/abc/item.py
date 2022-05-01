@@ -23,20 +23,15 @@
 from __future__ import annotations
 
 import abc
+import typing as t
 from abc import abstractmethod
 from functools import partial
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Callable
-from typing import Generic
-from typing import Optional
-from typing import TypeVar
 
 import hikari
 
 from ..interaction import ComponentInteraction
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from ..context import ViewContext
     from ..modal import Modal
     from ..view import View
@@ -51,21 +46,21 @@ class Item(abc.ABC):
     """
 
     def __init__(self) -> None:
-        self._row: Optional[int] = None
+        self._row: t.Optional[int] = None
         self._width: int = 1
-        self._rendered_row: Optional[int] = None  # Where it actually ends up when rendered by Discord
-        self._custom_id: Optional[str] = None
-        self._handler: Optional[ItemHandler] = None
+        self._rendered_row: t.Optional[int] = None  # Where it actually ends up when rendered by Discord
+        self._custom_id: t.Optional[str] = None
+        self._handler: t.Optional[ItemHandler] = None
 
     @property
-    def row(self) -> Optional[int]:
+    def row(self) -> t.Optional[int]:
         """
         The row the item should occupy. Leave as None for automatic placement.
         """
         return self._row
 
     @row.setter
-    def row(self, value: Optional[int]) -> None:
+    def row(self, value: t.Optional[int]) -> None:
         if self._rendered_row is not None:
             raise RuntimeError("Item is already attached to a view, row cannot be changed.")
 
@@ -84,7 +79,7 @@ class Item(abc.ABC):
         return self._width
 
     @property
-    def custom_id(self) -> Optional[str]:
+    def custom_id(self) -> t.Optional[str]:
         """
         The item's custom identifier. This will be used to track the item through interactions and
         is required for persistent views.
@@ -92,7 +87,7 @@ class Item(abc.ABC):
         return self._custom_id
 
     @custom_id.setter
-    def custom_id(self, value: Optional[str]) -> None:
+    def custom_id(self, value: t.Optional[str]) -> None:
         if value and not isinstance(value, str):
             raise TypeError("Expected type str for property custom_id.")
         if value and len(value) > 100:
@@ -123,7 +118,7 @@ class ViewItem(Item, abc.ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self._handler: Optional[View] = None
+        self._handler: t.Optional[View] = None
         self._persistent: bool = False
         self._disabled: bool = False
 
@@ -152,7 +147,7 @@ class ViewItem(Item, abc.ABC):
 
     @classmethod
     @abstractmethod
-    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem:
+    def _from_component(cls, component: hikari.PartialComponent, row: t.Optional[int] = None) -> ViewItem:
         """
         Converts the passed hikari component into a miru ViewItem.
         """
@@ -178,12 +173,12 @@ class ModalItem(Item, abc.ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self._handler: Optional[Modal] = None
+        self._handler: t.Optional[Modal] = None
         self._persistent: bool = False
         self._required: bool = False
 
     @property
-    def modal(self) -> Optional[Modal]:
+    def modal(self) -> t.Optional[Modal]:
         """
         The modal this item is attached to.
         """
@@ -209,7 +204,7 @@ class ModalItem(Item, abc.ABC):
 class DecoratedItem:
     """A partial item made using a decorator."""
 
-    def __init__(self, item: ViewItem, callback: Callable[..., Any]) -> None:
+    def __init__(self, item: ViewItem, callback: t.Callable[..., t.Any]) -> None:
         self.item = item
         self.callback = callback
 
@@ -241,5 +236,5 @@ class DecoratedItem:
         """
         return self.callback.__name__
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Any:
         return self.callback(*args, **kwargs)

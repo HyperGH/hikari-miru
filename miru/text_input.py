@@ -23,19 +23,16 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
-from typing import Optional
-from typing import TypeVar
-from typing import Union
+import typing as t
 
 import hikari
 
 from .abc.item import ModalItem
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .modal import Modal
 
-ModalT = TypeVar("ModalT", bound="Modal")
+ModalT = t.TypeVar("ModalT", bound="Modal")
 
 __all__ = ["TextInput"]
 
@@ -69,26 +66,26 @@ class TextInput(ModalItem):
         self,
         *,
         label: str,
-        style: Union[hikari.TextInputStyle, int] = hikari.TextInputStyle.SHORT,
-        placeholder: Optional[str] = None,
-        value: Optional[str] = None,
+        style: t.Union[hikari.TextInputStyle, int] = hikari.TextInputStyle.SHORT,
+        placeholder: t.Optional[str] = None,
+        value: t.Optional[str] = None,
         required: bool = False,
-        min_length: Optional[int] = None,
-        max_length: Optional[int] = None,
-        custom_id: Optional[str] = None,
-        row: Optional[int] = None,
+        min_length: t.Optional[int] = None,
+        max_length: t.Optional[int] = None,
+        custom_id: t.Optional[str] = None,
+        row: t.Optional[int] = None,
     ) -> None:
         super().__init__()
         self._width: int = 5
-        self._style: Union[hikari.TextInputStyle, int] = style
-        self._placeholder: Optional[str] = str(placeholder) if placeholder else None
-        self._value: Optional[str] = str(value) if value else None
+        self._style: t.Union[hikari.TextInputStyle, int] = style
+        self._placeholder: t.Optional[str] = str(placeholder) if placeholder else None
+        self._value: t.Optional[str] = str(value) if value else None
         self._label: str = str(label)
         self._required: bool = required
-        self._custom_id: Optional[str] = custom_id
-        self._max_length: Optional[int] = max_length
-        self._min_length: Optional[int] = min_length
-        self._row: Optional[int] = int(row) if row is not None else None
+        self._custom_id: t.Optional[str] = custom_id
+        self._max_length: t.Optional[int] = max_length
+        self._min_length: t.Optional[int] = min_length
+        self._row: t.Optional[int] = int(row) if row is not None else None
 
         if self.custom_id is None:
             self.custom_id = os.urandom(16).hex()
@@ -107,14 +104,14 @@ class TextInput(ModalItem):
         return hikari.ComponentType.TEXT_INPUT
 
     @property
-    def style(self) -> Union[hikari.TextInputStyle, int]:
+    def style(self) -> t.Union[hikari.TextInputStyle, int]:
         """
         The text input's style.
         """
         return self._style
 
     @style.setter
-    def style(self, value: Union[hikari.TextInputStyle, int]) -> None:
+    def style(self, value: t.Union[hikari.TextInputStyle, int]) -> None:
         if not isinstance(value, (hikari.TextInputStyle, int)):
             raise TypeError("Expected type hikari.ButtonStyle or int for property style.")
 
@@ -132,25 +129,25 @@ class TextInput(ModalItem):
         self._label = str(value)
 
     @property
-    def placeholder(self) -> Optional[str]:
+    def placeholder(self) -> t.Optional[str]:
         """
         Placeholder content for this text input field.
         """
         return self._placeholder
 
     @placeholder.setter
-    def placeholder(self, value: Optional[str]) -> None:
+    def placeholder(self, value: t.Optional[str]) -> None:
         self._placeholder = str(value) if value else None
 
     @property
-    def value(self) -> Optional[str]:
+    def value(self) -> t.Optional[str]:
         """
         Pre-filled content that should be included in the text input.
         """
         return self._value
 
     @value.setter
-    def value(self, value: Optional[str]) -> None:
+    def value(self, value: t.Optional[str]) -> None:
         if value:
             if self.min_length is not None and self.min_length < len(value):
                 raise ValueError("Parameter value does not meet minimum length requirement.")
@@ -161,12 +158,12 @@ class TextInput(ModalItem):
         self._value = str(value) if value else None
 
     @property
-    def min_length(self) -> Optional[int]:
+    def min_length(self) -> t.Optional[int]:
         """What the required minimum length of the input text should be."""
         return self._min_length
 
     @min_length.setter
-    def min_length(self, value: Optional[int]) -> None:
+    def min_length(self, value: t.Optional[int]) -> None:
         if not isinstance(value, int):
             raise TypeError("Expected type int for property min_length.")
         if self.value:
@@ -175,12 +172,12 @@ class TextInput(ModalItem):
         self._min_length = value
 
     @property
-    def max_length(self) -> Optional[int]:
+    def max_length(self) -> t.Optional[int]:
         """What the maximum allowed length of the input text should be."""
         return self._max_length
 
     @max_length.setter
-    def max_length(self, value: Optional[int]) -> None:
+    def max_length(self, value: t.Optional[int]) -> None:
         if not isinstance(value, int):
             raise TypeError("Expected type int for property max_length.")
         if self.value:

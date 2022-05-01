@@ -64,10 +64,11 @@ as unbound views have no concept of what message they are attached to.
             view = Persistence()
             message = await event.message.respond(
                 "This is a persistent view, and works after bot restarts!",
-                components=view.build(),
+                components=view,
             )
 
-            # You do not need to start unbound persistent views since there is already a listener running for them.
+            # You do not need to start unbound persistent views, as a single listener handles
+            # all views of the same type.
 
 
     bot.run()
@@ -130,7 +131,7 @@ simply pass a message ID to ``start_listener()``. This also allows for the view 
             view = Persistence()
             message = await event.message.respond(
                 "This is a persistent component menu, and works after bot restarts!",
-                components=view.build(),
+                components=view,
             )
             # Bound persistent views need to be started for every message.
             view.start(message)

@@ -22,9 +22,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
-from typing import Optional
-from typing import Union
+import typing as t
 
 import hikari
 
@@ -35,7 +33,7 @@ from miru.modal import Modal
 from miru.select import Select
 from miru.text_input import TextInput
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .navigator import NavigatorView
 
 
@@ -44,7 +42,7 @@ class NavItem(ViewItem, abc.ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self._handler: Optional[NavigatorView] = None
+        self._handler: t.Optional[NavigatorView] = None
 
     async def before_page_change(self) -> None:
         """
@@ -82,11 +80,11 @@ class NextButton(NavButton):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
-        label: Optional[str] = None,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = chr(9654),
-        row: Optional[int] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
+        label: t.Optional[str] = None,
+        custom_id: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = chr(9654),
+        row: t.Optional[int] = None,
     ):
         super().__init__(style=style, label=label, custom_id=custom_id, emoji=emoji, row=row)
 
@@ -109,11 +107,11 @@ class PrevButton(NavButton):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
-        label: Optional[str] = None,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = chr(9664),
-        row: Optional[int] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
+        label: t.Optional[str] = None,
+        custom_id: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = chr(9664),
+        row: t.Optional[int] = None,
     ):
         super().__init__(style=style, label=label, custom_id=custom_id, emoji=emoji, row=row)
 
@@ -136,11 +134,11 @@ class FirstButton(NavButton):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
-        label: Optional[str] = None,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = chr(9194),
-        row: Optional[int] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
+        label: t.Optional[str] = None,
+        custom_id: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = chr(9194),
+        row: t.Optional[int] = None,
     ):
         super().__init__(style=style, label=label, custom_id=custom_id, emoji=emoji, row=row)
 
@@ -163,11 +161,11 @@ class LastButton(NavButton):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
-        label: Optional[str] = None,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = chr(9193),
-        row: Optional[int] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
+        label: t.Optional[str] = None,
+        custom_id: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = chr(9193),
+        row: t.Optional[int] = None,
     ):
         super().__init__(style=style, label=label, custom_id=custom_id, emoji=emoji, row=row)
 
@@ -190,11 +188,11 @@ class IndicatorButton(NavButton):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.SECONDARY,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.SECONDARY,
+        custom_id: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = None,
         disabled: bool = False,
-        row: Optional[int] = None,
+        row: t.Optional[int] = None,
     ):
         # Either label or emoji is required, so we pass a placeholder
         super().__init__(style=style, label="0/0", custom_id=custom_id, emoji=emoji, disabled=disabled, row=row)
@@ -230,11 +228,11 @@ class StopButton(NavButton):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.DANGER,
-        label: Optional[str] = None,
-        custom_id: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = chr(9209),
-        row: Optional[int] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.DANGER,
+        label: t.Optional[str] = None,
+        custom_id: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = chr(9209),
+        row: t.Optional[int] = None,
     ):
         super().__init__(style=style, label=label, custom_id=custom_id, emoji=emoji, row=row)
 
@@ -247,7 +245,7 @@ class StopButton(NavButton):
                 item.disabled = True
 
         if self.view._using_inter and self.view._inter:
-            await self.view._inter.edit_initial_response(components=self.view.build())
+            await self.view._inter.edit_initial_response(components=self.view)
         elif self.view.message:
-            await self.view.message.edit(components=self.view.build())
+            await self.view.message.edit(components=self.view)
         self.view.stop()

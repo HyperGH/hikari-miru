@@ -1,0 +1,70 @@
+name: Bug report
+description: Found a bug with the library? Report it here!
+labels: ["bug"]
+assignees:
+  - HyperGH
+
+body:
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce
+      description: Steps to reproduce the bug. Please be as detailed as possible in your explanations, and ensure the bug can be reproduced with these steps.
+      value: |
+        1. Run code
+        2. Do stuff
+        3. Crash system
+        4. Observe bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Expected result
+      description: What should have happened if the bug wasn't there?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: Actual result
+      description: What happened exactly? Please provide a detailed explanation, and any errors, tracebacks, or other information.
+    validations:
+      required: true
+
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System information
+      description: The output of `python -m miru`.
+      placeholder: |
+        hikari-miru - package information
+        ----------------------------------
+        Miru version: 1.2.0
+        Install path: /home/foo/.local/lib/python3.10/site-packages/miru
+        Hikari version: 2.0.0.dev109
+        Install path: /home/foo/.local/lib/python3.10/site-packages/hikari
+        Python: CPython 3.10.4 (GCC 11.2.0)
+        System: Linux x86_64 (archlinux) - 5.17.1-zen1-1-zen
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: further-info
+    attributes:
+      label: Further information
+      description: Any further information, images, or other resources go here.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Make sure to tick all the following boxes.
+      options:
+        - label: I have made sure to remove ANY sensitive information (bot token, passwords, credentials, personal details, etc.).
+          required: true
+        - label: I have searched the issue tracker and have made sure it's not a duplicate. If it is a follow up of another issue, I have specified it.
+          required: true

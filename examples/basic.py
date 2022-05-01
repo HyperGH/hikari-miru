@@ -65,10 +65,9 @@ async def buttons(event: hikari.GuildMessageCreateEvent) -> None:
 
     if event.content.startswith("miru"):
         view = BasicView()  # Create an instance of our newly created BasicView
-        # Build the components defined in the view and attach them to our message
-        # View.build() returns a list of the built action-rows, ready to be sent in a message
+        # Attach the components defined in the view to our message
         message = await event.message.respond(
-            "This is a basic component menu built with miru!", components=view.build()
+            "This is a basic component menu built with miru!", components=view
         )
 
         view.start(message)  # Start listening for interactions

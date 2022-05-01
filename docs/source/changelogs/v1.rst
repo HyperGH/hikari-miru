@@ -29,13 +29,23 @@ Version 1.2.0
 
 - ``Button`` and ``Select`` are now subclasses of ``ViewItem``.
 
-- Added ``miru.abc.ItemHandler``. ``View`` and ``Modal`` subclass of this.
+- Added ``miru.abc.ItemHandler``. ``View`` and ``Modal`` are subclasses of this object.
+
+- Added ``miru.abc.ItemHandler.last_context`` to access the last received context & interaction by the item handler.
+
+- ``miru.abc.ItemHandler`` now implements ``Sequence[hikari.api.ActionRowBuilder]``, and thus can be treated as a sequence of action rows. This means that calling ``.build()`` on item handlers is no longer required.
 
 - Renamed ``miru.Interaction`` to ``miru.ComponentInteraction``.
 
 - Added ``miru.ModalInteraction``.
 
 - Added ``View.from_message()`` classmethod to allow creation of views from message components.
+
+- Added ``View.wait_for_input()`` to wait for any component interaction relating to the view.
+
+- Added ``timeout`` parameter to ``ItemHandler.wait()``.
+
+- Added ``View.get_context()`` and ``Modal.get_context()`` for custom context support.
 
 - Added two new event types ``ModalInteractionCreateEvent`` and ``ComponentInteractionCreateEvent``.
 

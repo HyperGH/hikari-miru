@@ -26,11 +26,7 @@ import asyncio
 import copy
 import sys
 import traceback
-from typing import ClassVar
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import TypeVar
+import typing as t
 
 import hikari
 
@@ -64,15 +60,15 @@ class View(ItemHandler):
         Raised if miru.load() was never called before instantiation.
     """
 
-    _view_children: ClassVar[List[DecoratedItem]] = []  # Decorated callbacks that need to be turned into items
+    _view_children: t.ClassVar[t.List[DecoratedItem]] = []  # Decorated callbacks that need to be turned into items
     # Mapping of message_id: View
-    _views: Dict[int, View] = {}  # List of all currently active BOUND views, unbound persistent are not listed here
+    _views: t.Dict[int, View] = {}  # List of all currently active BOUND views, unbound persistent are not listed here
 
     def __init_subclass__(cls) -> None:
         """
         Get decorated callbacks
         """
-        children: List[DecoratedItem] = []
+        children: t.List[DecoratedItem] = []
         for base_cls in reversed(cls.mro()):
             for value in base_cls.__dict__.values():
                 if isinstance(value, DecoratedItem):
@@ -86,12 +82,13 @@ class View(ItemHandler):
     def __init__(
         self,
         *,
-        timeout: Optional[float] = 120.0,
+        timeout: t.Optional[float] = 120.0,
         autodefer: bool = True,
     ) -> None:
         super().__init__(timeout=timeout, autodefer=autodefer)
-        self._message: Optional[hikari.Message] = None
-        self._message_id: Optional[int] = None  # Only for bound persistent views
+        self._message: t.Optional[hikari.Message] = None
+        self._message_id: t.Optional[int] = None  # Only for bound persistent views
+        self._inputted: asyncio.Event = asyncio.Event()
 
         for decorated_item in self._view_children:  # Sort and instantiate decorated callbacks
             # Must deepcopy, otherwise multiple views will have the same item reference
@@ -109,7 +106,7 @@ class View(ItemHandler):
         return self.timeout is None and all(isinstance(item, ViewItem) and item._persistent for item in self.children)
 
     @property
-    def message(self) -> Optional[hikari.Message]:
+    def message(self) -> t.Optional[hikari.Message]:
         """
         The message this view is attached to. This is None if the view was started with start_listener().
         """
@@ -122,8 +119,16 @@ class View(ItemHandler):
         """
         return True if self._message_id is not None else False
 
+    @property
+    def last_context(self) -> t.Optional[ViewContext]:
+        """
+        The last context that was received by the view.
+        """
+        assert isinstance(self._last_context, ViewContext)
+        return self._last_context
+
     @classmethod
-    def from_message(cls, message: hikari.Message, *, timeout: Optional[float] = 120, autodefer: bool = True) -> View:
+    def from_message(cls, message: hikari.Message, *, timeout: t.Optional[float] = 120, autodefer: bool = True) -> View:
         """Create a new from the components included in the passed message. Returns an empty view if the message has no components attached.
 
         Parameters
@@ -210,8 +215,8 @@ class View(ItemHandler):
     async def on_error(
         self,
         error: Exception,
-        item: Optional[ViewItem] = None,
-        context: Optional[ViewContext] = None,
+        item: t.Optional[ViewItem] = None,
+        context: t.Optional[ViewContext] = None,
     ) -> None:
         """Called when an error occurs in a callback function or the built-in timeout function.
         Override for custom error-handling logic.
@@ -241,6 +246,24 @@ class View(ItemHandler):
 
         super().stop()
 
+    def get_context(self, interaction: ComponentInteraction, *, cls: t.Type[ViewContext] = ViewContext) -> ViewContext:
+        """
+        Get the context for this view. Override this function to provide a custom context object.
+
+        Parameters
+        ----------
+        interaction : ComponentInteraction
+            The interaction to construct the context from.
+        cls : Type[ViewContext], optional
+            The class to use for the context, by default ViewContext.
+
+        Returns
+        -------
+        ViewContext
+            The context for this interaction.
+        """
+        return cls(self, interaction)
+
     async def _handle_callback(self, item: ViewItem, context: ViewContext) -> None:
         """
         Handle the callback of a view item. Seperate task in case the view is stopped in the callback.
@@ -248,6 +271,9 @@ class View(ItemHandler):
         assert isinstance(context.interaction, ComponentInteraction)
 
         try:
+            self._inputted.set()
+            self._inputted.clear()
+
             await item._refresh(context.interaction)
             await item.callback(context)
 
@@ -269,7 +295,8 @@ class View(ItemHandler):
             items = [item for item in self.children if item.custom_id == interaction.custom_id]
             if len(items) > 0:
 
-                context = ViewContext(self, interaction)
+                context = self.get_context(interaction)
+                self._last_context = context
 
                 passed = await self.view_check(context)
                 if not passed:
@@ -280,7 +307,7 @@ class View(ItemHandler):
                     # Create task here to ensure autodefer works even if callback stops view
                     self._create_task(self._handle_callback(item, context))
 
-    async def _listen_for_events(self, message_id: Optional[int] = None) -> None:
+    async def _listen_for_events(self, message_id: t.Optional[int] = None) -> None:
         """
         Listen for incoming interaction events through the gateway.
         """
@@ -316,7 +343,17 @@ class View(ItemHandler):
 
         await super()._handle_timeout()
 
-    def start_listener(self, message: Optional[hikari.SnowflakeishOr[hikari.PartialMessage]] = None) -> None:
+    async def wait_for_input(self, timeout: t.Optional[float] = None) -> None:
+        """Wait for any input to be received.
+
+        Parameters
+        ----------
+        timeout : Optional[float], optional
+            The amount of time to wait for input, in seconds, by default None
+        """
+        await asyncio.wait_for(self._inputted.wait(), timeout=timeout)
+
+    def start_listener(self, message: t.Optional[hikari.SnowflakeishOr[hikari.PartialMessage]] = None) -> None:
         """Re-registers a persistent view for listening after an application restart.
         Specify message_id to create a bound persistent view that can be edited afterwards.
 
@@ -346,7 +383,7 @@ class View(ItemHandler):
 
             View._views[message_id] = self
 
-        self._listener_task = asyncio.create_task(self._listen_for_events(message_id))
+        self._listener_task = self._create_task(self._listen_for_events(message_id))
 
     def start(self, message: hikari.Message) -> None:
         """Start up the view and begin listening for interactions.
@@ -371,7 +408,7 @@ class View(ItemHandler):
 
         self._message = message
         self._message_id = message.id
-        self._listener_task = asyncio.create_task(self._listen_for_events(message.id))
+        self._listener_task = self._create_task(self._listen_for_events(message.id))
 
         # Handle replacement of view on message edit
         if message.id in View._views.keys():
@@ -380,7 +417,7 @@ class View(ItemHandler):
         View._views[message.id] = self
 
 
-def get_view(message: hikari.SnowflakeishOr[hikari.PartialMessage]) -> Optional[View]:
+def get_view(message: hikari.SnowflakeishOr[hikari.PartialMessage]) -> t.Optional[View]:
     """Get a currently running view that is attached to the provided message.
 
     Parameters

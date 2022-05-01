@@ -24,21 +24,18 @@ from __future__ import annotations
 
 import inspect
 import os
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Callable
-from typing import Optional
-from typing import TypeVar
-from typing import Union
+import typing as t
 
 import hikari
 
 from .abc.item import DecoratedItem
 from .abc.item import ViewItem
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .context import ViewContext
     from .view import View
+
+    ViewT = t.TypeVar("ViewT", bound="View")
 
 __all__ = ["Button", "button"]
 
@@ -74,23 +71,23 @@ class Button(ViewItem):
     def __init__(
         self,
         *,
-        style: Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
-        label: Optional[str] = None,
+        style: t.Union[hikari.ButtonStyle, int] = hikari.ButtonStyle.PRIMARY,
+        label: t.Optional[str] = None,
         disabled: bool = False,
-        custom_id: Optional[str] = None,
-        url: Optional[str] = None,
-        emoji: Union[hikari.Emoji, str, None] = None,
-        row: Optional[int] = None,
+        custom_id: t.Optional[str] = None,
+        url: t.Optional[str] = None,
+        emoji: t.Union[hikari.Emoji, str, None] = None,
+        row: t.Optional[int] = None,
     ) -> None:
         super().__init__()
 
-        self._style: Union[hikari.ButtonStyle, int] = style
-        self._label: Optional[str] = label
+        self._style: t.Union[hikari.ButtonStyle, int] = style
+        self._label: t.Optional[str] = label
         self._disabled: bool = disabled
-        self._emoji: Union[str, hikari.Emoji, None] = emoji
-        self._custom_id: Optional[str] = custom_id
-        self._row: Optional[int] = int(row) if row is not None else None
-        self._url: Optional[str] = url
+        self._emoji: t.Union[str, hikari.Emoji, None] = emoji
+        self._custom_id: t.Optional[str] = custom_id
+        self._row: t.Optional[int] = int(row) if row is not None else None
+        self._url: t.Optional[str] = url
 
         self._persistent: bool = True if custom_id else False
 
@@ -115,14 +112,14 @@ class Button(ViewItem):
         return hikari.ComponentType.BUTTON
 
     @property
-    def style(self) -> Union[hikari.ButtonStyle, int]:
+    def style(self) -> t.Union[hikari.ButtonStyle, int]:
         """
         The button's style.
         """
         return self._style
 
     @style.setter
-    def style(self, value: Union[hikari.ButtonStyle, int]) -> None:
+    def style(self, value: t.Union[hikari.ButtonStyle, int]) -> None:
         if not isinstance(value, (hikari.ButtonStyle, int)):
             raise TypeError("Expected type hikari.ButtonStyle or int for property style.")
 
@@ -132,25 +129,25 @@ class Button(ViewItem):
         self._style = value
 
     @property
-    def label(self) -> Optional[str]:
+    def label(self) -> t.Optional[str]:
         """
         The button's label. This is the text visible on the button.
         """
         return self._label
 
     @label.setter
-    def label(self, value: Optional[str]) -> None:
+    def label(self, value: t.Optional[str]) -> None:
         self._label = str(value) if value else None
 
     @property
-    def emoji(self) -> Union[str, hikari.Emoji, None]:
+    def emoji(self) -> t.Union[str, hikari.Emoji, None]:
         """
         The emoji that should be visible on the button.
         """
         return self._emoji
 
     @emoji.setter
-    def emoji(self, value: Union[str, hikari.Emoji, None]) -> None:
+    def emoji(self, value: t.Union[str, hikari.Emoji, None]) -> None:
         if value and isinstance(value, str):
             value = hikari.Emoji.parse(value)
 
@@ -159,7 +156,7 @@ class Button(ViewItem):
         self._emoji = value
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> t.Optional[str]:
         """
         The button's URL. If specified, the button will turn into a link button,
         and the style parameter will be ignored.
@@ -177,7 +174,7 @@ class Button(ViewItem):
         self._url = value
 
     @classmethod
-    def _from_component(cls, component: hikari.PartialComponent, row: Optional[int] = None) -> ViewItem:
+    def _from_component(cls, component: hikari.PartialComponent, row: t.Optional[int] = None) -> ViewItem:
         assert isinstance(component, hikari.ButtonComponent)
 
         return cls(
@@ -191,7 +188,7 @@ class Button(ViewItem):
         )
 
     def _build(self, action_row: hikari.api.ActionRowBuilder) -> None:
-        button: Union[
+        button: t.Union[
             hikari.api.InteractiveButtonBuilder[hikari.api.ActionRowBuilder],
             hikari.api.LinkButtonBuilder[hikari.api.ActionRowBuilder],
         ]
@@ -212,13 +209,13 @@ class Button(ViewItem):
 
 def button(
     *,
-    label: Optional[str] = None,
-    custom_id: Optional[str] = None,
+    label: t.Optional[str] = None,
+    custom_id: t.Optional[str] = None,
     style: hikari.ButtonStyle = hikari.ButtonStyle.PRIMARY,
-    emoji: Optional[Union[str, hikari.Emoji]] = None,
-    row: Optional[int] = None,
+    emoji: t.Optional[t.Union[str, hikari.Emoji]] = None,
+    row: t.Optional[int] = None,
     disabled: bool = False,
-) -> Callable[[Callable[[View, Button, ViewContext], Any]], Button]:
+) -> t.Callable[[t.Callable[[ViewT, Button, ViewContext], t.Any]], Button]:
     """A decorator to transform a coroutine function into a Discord UI Button's callback.
     This must be inside a subclass of View.
 
@@ -243,7 +240,7 @@ def button(
         The decorated callback coroutine function.
     """
 
-    def decorator(func: Callable[..., Any]) -> Any:
+    def decorator(func: t.Callable[..., t.Any]) -> t.Any:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("button must decorate coroutine function.")
         item = Button(

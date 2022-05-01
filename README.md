@@ -40,7 +40,7 @@ class MyView(miru.View):
 
 
 bot = hikari.GatewayBot(token="...")
-miru.load(bot)
+miru.load(bot) # Load miru and attach it to the bot instance.
 
 
 @bot.listen()
@@ -51,7 +51,7 @@ async def buttons(event: hikari.GuildMessageCreateEvent) -> None:
 
     if event.content.startswith("miru"):
         view = MyView(timeout=60)  # Create a new view
-        message = await event.message.respond("Rock Paper Scissors!", components=view.build())
+        message = await event.message.respond("Rock Paper Scissors!", components=view)
         view.start(message)  # Start listening for interactions
         await view.wait() # Wait until the view times out or gets stopped
         await event.message.respond("Thank you for playing!")

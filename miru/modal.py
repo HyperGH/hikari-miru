@@ -26,10 +26,7 @@ import asyncio
 import os
 import sys
 import traceback
-from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import TypeVar
+import typing as t
 
 import hikari
 
@@ -39,7 +36,7 @@ from .abc.item_handler import ItemHandler
 from .context import ModalContext
 from .interaction import ModalInteraction
 
-ModalT = TypeVar("ModalT", bound="Modal")
+ModalT = t.TypeVar("ModalT", bound="Modal")
 
 
 class Modal(ItemHandler):
@@ -68,16 +65,16 @@ class Modal(ItemHandler):
         self,
         title: str,
         *,
-        custom_id: Optional[str] = None,
-        timeout: Optional[float] = 300.0,
+        custom_id: t.Optional[str] = None,
+        timeout: t.Optional[float] = 300.0,
         autodefer: bool = True,
     ) -> None:
         super().__init__(timeout=timeout, autodefer=autodefer)
 
         self._title: str = title
         self._custom_id: str = custom_id or os.urandom(16).hex()
-        self._values: Optional[Dict[ModalItem, str]] = None
-        self._ctx: Optional[ModalContext] = None
+        self._values: t.Optional[t.Dict[ModalItem, str]] = None
+        self._ctx: t.Optional[ModalContext] = None
 
         if len(self._title) > 100:
             raise ValueError("Modal title is too long. Maximum 100 characters.")
@@ -120,11 +117,19 @@ class Modal(ItemHandler):
         self._custom_id = value
 
     @property
-    def values(self) -> Optional[Dict[ModalItem, str]]:
+    def values(self) -> t.Optional[t.Dict[ModalItem, str]]:
         """
         The input values received by this modal.
         """
         return self._values
+
+    @property
+    def last_context(self) -> t.Optional[ModalContext]:
+        """
+        The last context that was received by the modal.
+        """
+        assert isinstance(self._last_context, ModalContext)
+        return self._last_context
 
     def add_item(self, item: Item) -> ItemHandler:
         """Adds a new item to the modal.
@@ -176,7 +181,7 @@ class Modal(ItemHandler):
     async def on_error(
         self,
         error: Exception,
-        context: Optional[ModalContext] = None,
+        context: t.Optional[ModalContext] = None,
     ) -> None:
         """Called when an error occurs in a callback function.
         Override for custom error-handling logic.
@@ -221,6 +226,26 @@ class Modal(ItemHandler):
             raise RuntimeError("This modal was not responded to.")
         return self._ctx
 
+    def get_context(
+        self, interaction: ModalInteraction, values: t.Dict[ModalItem, str], *, cls: t.Type[ModalContext] = ModalContext
+    ) -> ModalContext:
+        """
+        Get the context for this modal. Override this function to provide a custom context object.
+
+        Parameters
+        ----------
+        interaction : ModalInteraction
+            The interaction to construct the context from.
+        cls : Optional[Type[ModalContext]], optional
+            The class to use for the context, by default ModalContext.
+
+        Returns
+        -------
+        ModalContext
+            The context for this interaction.
+        """
+        return cls(self, interaction, values)
+
     async def _handle_callback(self, context: ModalContext) -> None:
         """
         Handle the callback of a modal item. Seperate task in case the view is stopped in the callback.
@@ -258,7 +283,8 @@ class Modal(ItemHandler):
 
             interaction: ModalInteraction = ModalInteraction.from_hikari(event.interaction)
 
-            context = ModalContext(self, interaction, values)
+            context = self.get_context(interaction, values)
+            self._last_context = context
 
             passed = await self.modal_check(context)
             if not passed:
@@ -286,15 +312,9 @@ class Modal(ItemHandler):
         else:
             await self._process_interactions(event)
 
-    async def wait(self) -> None:
-        """
-        Wait until the modal is responded to or stopped manually.
-        """
-        await asyncio.wait_for(self._stopped.wait(), timeout=None)
-
     def start(self) -> None:
         """Start up the modal and begin listening for interactions."""
-        self._listener_task = asyncio.create_task(self._listen_for_events())
+        self._listener_task = self._create_task(self._listen_for_events())
 
     async def send(self, interaction: hikari.ModalResponseMixin) -> None:
         """Send this modal as a response to the provided interaction."""

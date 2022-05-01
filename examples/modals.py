@@ -38,7 +38,7 @@ async def modals(event: hikari.GuildMessageCreateEvent) -> None:
     if event.content.startswith("miru"):
         view = ModalView()
         message = await event.message.respond(
-            "This is a basic component menu built with miru!", components=view.build()
+            "This is a basic component menu built with miru!", components=view
         )
         view.start(message)
 
