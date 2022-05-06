@@ -1,3 +1,6 @@
+from .item import *
+from .item_handler import *
+
 # MIT License
 #
 # Copyright (c) 2022-present HyperGH
@@ -19,6 +22,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from .item import *
-from .item_handler import *

@@ -1,3 +1,17 @@
+import typing
+
+import hikari
+
+__all__ = ["MiruAware"]
+
+
+@typing.runtime_checkable
+class MiruAware(hikari.RESTAware, hikari.EventManagerAware, typing.Protocol):
+    """
+    A trait that implements RESTAware and EventManagerAware.
+    """
+
+
 # MIT License
 #
 # Copyright (c) 2022-present HyperGH
@@ -19,16 +33,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-import typing
-
-import hikari
-
-__all__ = ["MiruAware"]
-
-
-@typing.runtime_checkable
-class MiruAware(hikari.RESTAware, hikari.EventManagerAware, typing.Protocol):
-    """
-    A trait that implements RESTAware and EventManagerAware.
-    """

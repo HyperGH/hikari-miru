@@ -1,3 +1,16 @@
+from .button import *
+from .context import *
+from .events import *
+from .interaction import *
+from .loader import *
+from .modal import *
+from .select import *
+from .text_input import *
+from .traits import *
+from .view import *
+
+__version__ = "1.2.0"
+
 # MIT License
 #
 # Copyright (c) 2022-present HyperGH
@@ -19,16 +32,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from .button import *
-from .context import *
-from .events import *
-from .interaction import *
-from .loader import *
-from .modal import *
-from .select import *
-from .text_input import *
-from .traits import *
-from .view import *
-
-__version__ = "1.2.0"
