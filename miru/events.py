@@ -63,6 +63,11 @@ class InteractionCreateEvent(Event):
         """The message that the interaction belongs to."""
         return self.interaction.message
 
+    @property
+    def custom_id(self) -> str:
+        """The developer-provided custom ID of the interaction."""
+        return self.interaction.custom_id
+
     def get_channel(self) -> t.Optional[hikari.TextableGuildChannel]:
         """Gets the channel object from the interaction, returns `None` if cache is not enabled."""
         return self.interaction.get_channel()
