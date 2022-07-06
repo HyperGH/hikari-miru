@@ -13,7 +13,7 @@ If you think anything is missing, feel free to open an issue or pull request.
 .. toctree::
    :maxdepth: 4
 
-   api_references/__init__
+   api_references/loader
    api_references/item
    api_references/item_handler
    api_references/interaction

@@ -51,7 +51,8 @@ class _Weights:
         self._weights = [0, 0, 0, 0, 0]
 
 
-class ItemHandler(Sequence[hikari.api.ActionRowBuilder], abc.ABC):
+# Add Sequence[hikari.api.ActionRowBuilder] here when dropping 3.8 support
+class ItemHandler(Sequence, abc.ABC):  # type: ignore[type-arg]
     """Abstract base class all item-handlers (e.g. views, modals) inherit from.
 
     Parameters

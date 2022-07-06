@@ -87,6 +87,11 @@ class Context(abc.ABC, t.Generic[InteractionT]):
         return self._interaction.guild_locale
 
     @property
+    def app_permissions(self) -> t.Optional[hikari.Permissions]:
+        """The permissions of the user who triggered the interaction. Will be None in DMs."""
+        return self._interaction.app_permissions
+
+    @property
     def channel_id(self) -> Snowflake:
         """The ID of the channel the context represents."""
         return self._interaction.channel_id
@@ -147,7 +152,7 @@ class Context(abc.ABC, t.Generic[InteractionT]):
             t.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> InteractionResponse:
-        """Short-hand method to respond to the interaction this context represents.
+        """Short-hand method to create a new message response via the interaction this context represents.
 
         Parameters
         ----------
@@ -217,16 +222,16 @@ class Context(abc.ABC, t.Generic[InteractionT]):
 
     async def edit_response(
         self,
-        content: hikari.UndefinedOr[t.Any] = hikari.UNDEFINED,
+        content: hikari.UndefinedNoneOr[t.Any] = hikari.UNDEFINED,
         *,
         flags: t.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[t.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedNoneOr[t.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[t.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[t.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedNoneOr[t.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         replace_attachments: bool = False,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: hikari.UndefinedOr[
@@ -236,7 +241,8 @@ class Context(abc.ABC, t.Generic[InteractionT]):
             t.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> InteractionResponse:
-        """A short-hand method to edit the last response belonging to this interaction.
+        """A short-hand method to edit the last message belonging to this interaction.
+        In the case of modals, this will be the component's message that triggered the modal.
 
         Parameters
         ----------
@@ -409,6 +415,34 @@ class ModalContext(RawModalContext):
     def values(self) -> t.Dict[ModalItem, str]:
         """The values received as input for this modal."""
         return self._values
+
+    def get_value_with_id(self, custom_id: str, default: hikari.UndefinedOr[t.Any] = hikari.UNDEFINED) -> t.Any:
+        """Get the value for a modal item with the given custom ID.
+
+        Parameters
+        ----------
+        custom_id : str
+            The custom_id of the component.
+        default : hikari.UndefinedOr[t.Any], optional
+            A default value to return if the item was not found, by default hikari.UNDEFINED
+
+        Returns
+        -------
+        Any
+            The value of the item with the given custom ID or the default value.
+
+        Raises
+        ------
+        KeyError
+            The item was not found and no default was provided.
+        """
+        for item, value in self.values.items():
+            if item.custom_id == custom_id:
+                return value
+
+        if default is hikari.UNDEFINED:
+            raise KeyError(f"No modal item with ID {custom_id}.")
+        return default
 
 
 # MIT License
